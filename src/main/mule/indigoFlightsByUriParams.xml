@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="indigoFlightsByUriParamsFlow" doc:id="67cb5870-33ba-4474-8eb5-c7c42e8871f7" >
+		<logger level="INFO" doc:name="Logger" doc:id="3050130b-b762-4a4b-9059-5b87c957ac85" message="indigoFlightsUriParams flow starts here............. " />
+		<http:request method="GET" doc:name="Request" doc:id="e6e0e861-f4cd-4307-b596-5ed53fbaf0bc" config-ref="HTTP_Request_configuration" path="/api/getFlights" >
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"from" : attributes.UriParams.source,
+	"to" : attributes.UriParams.destination,
+	"depatureDate" : attributes.UriParams.doj
+}]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="cffd04dd-45cb-4be4-a3ee-28446cbe9d58" message="response from indigoflightsuriParams ...........#[payload]" />
+		<ee:transform doc:name="Transform Message" doc:id="aa756a26-0996-4e46-9d88-6b4b57918f68" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"response from indigoflightsuriParams": payload
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="cd712bc8-766c-401a-8824-890a23da47e1" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="7506737c-87b0-4d4f-9b45-7869aa8b92fb" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[output application/json
+---
+{
+	status: 500,
+	Message: "application down try after some time"
+	
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>

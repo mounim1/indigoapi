@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	
+	<flow name="indigoFlightsBQueryParamsFlow" doc:id="47bb6cd8-fdc1-4dfb-8095-afb1fb608d15" >
+		<logger level="INFO" doc:name="Logger" doc:id="1aec7e32-130b-433b-a390-9414812ad8b8" message="indigoFlights flow starts here............. "/>
+		<http:request method="GET" doc:name="Request" doc:id="6b6dc6f3-a7bd-47b5-875d-33aa01abbda1" path="/api/getFlights" config-ref="HTTP_Request_configuration">
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"from" : attributes.queryParams.source,
+	"to" : attributes.queryParams.destination,
+	"depatureDate" : attributes.queryParams.doj
+}]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="a430a914-7db8-495b-b240-84d5f56e1a47" message="response from indigoflights...........#[payload]"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="2c3a3d2b-2aec-464e-9c31-5f9cc1834322" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="bc2c659c-d6fa-468f-a76f-26c19a2e802e" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[output application/json
+---
+{
+	status: 500,
+	Message: "application down try after some time"
+	
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>
